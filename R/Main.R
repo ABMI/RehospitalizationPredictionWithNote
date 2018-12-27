@@ -119,6 +119,7 @@ execute <- function(connectionDetails,
   
   if(runAnalyses){
     OhdsiRTools::logInfo("Running predictions")
+    
     predictionAnalysisListFile <- system.file("settings",
                                               "predictionAnalysisList.json",
                                               package = "RehospitalizationPredictionWithNote")

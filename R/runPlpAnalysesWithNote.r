@@ -23,6 +23,18 @@ runPlpAnalysesWithNote <- function(connectionDetails,
                           nfold = 3,
                           verbosity = "INFO") {
   
+  
+  clearLoggerType <- function(type='PLP log'){
+    logs <- OhdsiRTools::getLoggers()
+    logNames <- unlist(lapply(logs, function(x) x$name))
+    ind <- which(logNames==type)
+    
+    for(i in ind){
+      OhdsiRTools::unregisterLogger(logNames[i])
+    }
+    
+    return(NULL)
+  }
   # start log:
   clearLoggerType("Multple PLP Log")
   if(!dir.exists(outputFolder)){dir.create(outputFolder,recursive=T)}
@@ -125,25 +137,25 @@ runPlpAnalysesWithNote <- function(connectionDetails,
       plpDataSettings$covariateSettings <- modelAnalysisList$covariateSettings[[referenceTable$covariateSettingId[i]]]
 
       #defaultTopicModel <- noteCovariateExtraction::loadDefaultTopicModel(noteConceptId = 44814637)
-      #noteCovSet<-noteCovariateExtraction::createTopicFromNoteSettings(useTopicFromNote = TRUE,
-                                                              # noteConceptId = c(44814637),
-                                                              # useDictionary=TRUE,
-                                                              # targetLanguage = c('KOR','ENG'),
-                                                              # limitedMedicalTermOnlyLanguage = c('KOR','ENG'),
-                                                              # nGram = 1L,
-                                                              # buildTopicModeling= FALSE,
-                                                              # buildTopidModelMinFrac = 0.01,
-                                                              # existingTopicModel = defaultTopicModel,
-                                                              # useTextToVec = FALSE,
-                                                              # useTopicModeling=FALSE,
-                                                              # numberOfTopics=10L,
-                                                              # optimalTopicValue =TRUE,
-                                                              # useGloVe = FALSE,
-                                                              # latentDimensionForGlove = 100L,
-                                                              # useAutoencoder=FALSE,
-                                                              # latentDimensionForAutoEncoder = 100L,
-                                                              # sampleSize=-1)
-      #plpDataSettings$covariateSettings <- list ( modelAnalysisList$covariateSettings[[referenceTable$covariateSettingId[i]]], noteCovSet)
+      noteCovSet<-noteCovariateExtraction::createTopicFromNoteSettings(useTopicFromNote = TRUE,
+                                                                        noteConceptId = c(44814637),
+                                                                        useDictionary= FALSE,
+                                                                        targetLanguage = c('KOR','ENG'),
+                                                                        nGram = 1L,
+                                                                        buildTopicModeling= FALSE,
+                                                                        buildTopidModelMinFrac = 0.01,
+                                                                        existingTopicModel = list(c(44814637),c('KOR','ENG')),
+                                                                        useCustomTopicModel = FALSE,
+                                                                        useTextToVec = FALSE,
+                                                                        useTopicModeling=TRUE,
+                                                                        numberOfTopics=4000L,
+                                                                        optimalTopicValue =FALSE,
+                                                                        useGloVe = FALSE,
+                                                                        latentDimensionForGlove = 100L,
+                                                                        useAutoencoder=FALSE,
+                                                                        latentDimensionForAutoEncoder = 100L,
+                                                                        sampleSize=-1)
+      plpDataSettings$covariateSettings <- list ( modelAnalysisList$covariateSettings[[referenceTable$covariateSettingId[i]]], noteCovSet)
         
       plpData <- tryCatch(do.call(getPlpData, plpDataSettings),
                finally= OhdsiRTools::logTrace('Done plpData.'),
