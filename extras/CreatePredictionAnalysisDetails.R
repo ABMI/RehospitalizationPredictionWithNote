@@ -27,94 +27,111 @@
 
 createAnalysesDetails <- function(workFolder) {
    # 1) ADD MODELS you want
-  modelSettingList <- list(setAdaBoost(nEstimators = c(10,50,100), learningRate = c(0.5,0.9,1)),
-                           setLassoLogisticRegression(),
-                           setGradientBoostingMachine(), 
-                           setCIReNN(), 
-                           setCNNTorch(), 
-                           setCovNN(), 
-                           setCovNN2(), 
-                           setDecisionTree(), 
-                           setDeepNN(), 
-                           setKNN(), 
-                        setLRTorch(), 
-                        setMLP(), 
-                        setMLPTorch(), 
-                        setNaiveBayes(), 
-                        setRandomForest(), 
-                        setRNNTorch())
+  modelSettingList <- list(#PatientLevelPrediction::setAdaBoost(nEstimators = c(10,50,100), learningRate = c(0.5,0.9,1)),
+                           PatientLevelPrediction::setLassoLogisticRegression(),
+                           PatientLevelPrediction::setGradientBoostingMachine()#, 
+                           #setCIReNN(), 
+                           #setCNNTorch(), 
+                           #setCovNN(), 
+                           #setCovNN2(), 
+                           #setDecisionTree(), 
+                           #setDeepNN(), 
+                           #setKNN(), 
+                        #setLRTorch(), 
+                        #setMLP(), 
+                        #setMLPTorch(), 
+                        #setNaiveBayes(), 
+                        #setRandomForest(), 
+                        #setRNNTorch()
+                        )
   
   # 2) ADD POPULATIONS you want
-  pop1 <- createStudyPopulationSettings(riskWindowStart = 1, 
-                                        riskWindowEnd = 365,
-                                        requireTimeAtRisk = T, 
-                                        minTimeAtRisk = 364, 
-                                        includeAllOutcomes = T)
-  pop2 <- createStudyPopulationSettings(riskWindowStart = 1, 
-                                        riskWindowEnd = 365,
-                                        requireTimeAtRisk = T, 
-                                        minTimeAtRisk = 364, 
-                                        includeAllOutcomes = F)
-  populationSettingList <- list(pop1, pop2)
+  
+  pop1 <- PatientLevelPrediction::createStudyPopulationSettings(riskWindowStart = 1, 
+                                                                riskWindowEnd = 30,
+                                                                requireTimeAtRisk = T, 
+                                                                minTimeAtRisk = 29, 
+                                                                includeAllOutcomes = T)
+  # pop2 <- createStudyPopulationSettings(riskWindowStart = 1, 
+  #                                       riskWindowEnd = 365,
+  #                                       requireTimeAtRisk = T, 
+  #                                       minTimeAtRisk = 364, 
+  #                                       includeAllOutcomes = F)
+  populationSettingList <- list(pop1
+                                #, pop2
+                                )
   
   # 3) ADD COVARIATES settings you want
-  covariateSettings1 <- FeatureExtraction::createCovariateSettings(useDemographicsGender = TRUE,
-                                                                  useDemographicsAgeGroup = TRUE,
-                                                                  useDemographicsRace = TRUE,
-                                                                  useConditionOccurrenceAnyTimePrior = T,
-                                                                  useConditionEraAnyTimePrior = TRUE,
-                                                                  useConditionGroupEraAnyTimePrior = TRUE, #FALSE,
-                                                                  useDrugExposureAnyTimePrior = T,
-                                                                  useDrugEraAnyTimePrior = TRUE,
-                                                                  useDrugGroupEraAnyTimePrior = TRUE, #FALSE,
-                                                                  useProcedureOccurrenceAnyTimePrior = T,
-                                                                  useDeviceExposureAnyTimePrior = T,
-                                                                  useMeasurementAnyTimePrior =T,
-                                                                  useObservationAnyTimePrior = T,
-                                                                  useCharlsonIndex = TRUE,
-                                                                  useDcsi = TRUE, 
-                                                                  useChads2 = TRUE,
-                                                                  longTermStartDays = -365,
-                                                                  mediumTermStartDays = -180, 
-                                                                  shortTermStartDays = -30, 
-                                                                  endDays = 0)
+  defaultCovariateSettings <- FeatureExtraction::createCovariateSettings(useDemographicsGender = TRUE,
+                                                                         useDemographicsAgeGroup = TRUE,
+                                                                         useDemographicsRace = TRUE,
+                                                                         useConditionOccurrenceAnyTimePrior = T,
+                                                                         useConditionEraAnyTimePrior = TRUE,
+                                                                         useConditionGroupEraAnyTimePrior = TRUE, #FALSE,
+                                                                         useDrugExposureAnyTimePrior = T,
+                                                                         useDrugEraAnyTimePrior = TRUE,
+                                                                         useDrugGroupEraAnyTimePrior = TRUE, #FALSE,
+                                                                         useProcedureOccurrenceAnyTimePrior = T,
+                                                                         useDeviceExposureAnyTimePrior = T,
+                                                                         useMeasurementAnyTimePrior =T,
+                                                                         useObservationAnyTimePrior = T,
+                                                                         useCharlsonIndex = TRUE,
+                                                                         useDcsi = TRUE,
+                                                                         useChads2 = TRUE,
+                                                                         longTermStartDays = -365,
+                                                                         mediumTermStartDays = -180, 
+                                                                         shortTermStartDays = -30, 
+                                                                         endDays = 0)
   
-  covariateSettings2 <- FeatureExtraction::createCovariateSettings(useDemographicsGender = TRUE,
-                                                                   useDemographicsAgeGroup = TRUE,
-                                                                   useDemographicsRace = TRUE,
-                                                                   useConditionOccurrenceAnyTimePrior = T,
-                                                                   useConditionEraAnyTimePrior = TRUE,
-                                                                   useConditionGroupEraAnyTimePrior = TRUE, 
-                                                                   longTermStartDays = -365,
-                                                                   mediumTermStartDays = -180, 
-                                                                   shortTermStartDays = -30, 
-                                                                   endDays = 0)
+  defaultTopicModel <- noteCovariateExtraction::loadDefaultTopicModel(c(44814637),c('KOR'))
+  noteCovSet<-noteCovariateExtraction::createTopicFromNoteSettings(useTopicFromNote = TRUE,
+                                                                   noteConceptId = c(44814637),
+                                                                   useDictionary= FALSE,
+                                                                   targetLanguage = c('KOR','ENG'),
+                                                                   nGram = 1L,
+                                                                   buildTopicModeling= FALSE,
+                                                                   buildTopidModelMinFrac = 0.01,
+                                                                   existingTopicModel = defaultTopicModel,
+                                                                   useCustomTopicModel = FALSE,
+                                                                   useTextToVec = FALSE,
+                                                                   useTopicModeling=TRUE,
+                                                                   numberOfTopics=4000L,
+                                                                   optimalTopicValue =FALSE,
+                                                                   useGloVe = FALSE,
+                                                                   latentDimensionForGlove = 100L,
+                                                                   useAutoencoder=FALSE,
+                                                                   latentDimensionForAutoEncoder = 100L,
+                                                                   sampleSize=-1)
+
   
-  covariateSettingList <- list(covariateSettings1, covariateSettings2) 
+  covariateSettingList <- list(defaultCovariateSettings, noteCovSet) 
   
   # ADD COHORTS
-  cohortIds <- c(1,2,3)  # add all your Target cohorts here
-  outcomeIds <- c(2,3)   # add all your outcome cohorts here
+  cohortIds <- c(747#,
+                 )  # add all your Target cohorts here
+  outcomeIds <- c(748
+                  #2,3
+                  )   # add all your outcome cohorts here
   
   
   # this will then generate and save the json specification for the analysis
-  savePredictionAnalysisList(workFolder=workFolder,
+    PatientLevelPrediction::savePredictionAnalysisList(workFolder=workFolder,
                                          cohortIds,
                                          outcomeIds,
-                             cohortSettingCsv =file.path(workFolder, 'CohortsToCreate.csv'), 
+                                        cohortSettingCsv =file.path(workFolder, 'CohortsToCreate.csv'), 
                               
-                                         covariateSettingList,
-                                         populationSettingList,
-                                         modelSettingList,
+                                        covariateSettingList=covariateSettingList,
+                                        populationSettingList=populationSettingList,
+                                        modelSettingList=modelSettingList,
                                          
-                                         maxSampleSize= 100000,
+                                         maxSampleSize= NULL,
                                          washoutPeriod=0,
-                                         minCovariateFraction=0,
+                                         minCovariateFraction=0.01,
                                          normalizeData=T,
                                          testSplit='person',
                                          testFraction=0.25,
                                          splitSeed=1,
-                                         nfold=3,
-                                         verbosity="INFO")
+                                         nfold=3
+                                         )
 
   }

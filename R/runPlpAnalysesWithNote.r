@@ -23,7 +23,7 @@ runPlpAnalysesWithNote <- function(connectionDetails,
                           nfold = 3,
                           verbosity = "INFO") {
   
-  
+  library(PatientLevelPrediction)
   clearLoggerType <- function(type='PLP log'){
     logs <- OhdsiRTools::getLoggers()
     logNames <- unlist(lapply(logs, function(x) x$name))
@@ -136,7 +136,7 @@ runPlpAnalysesWithNote <- function(connectionDetails,
       plpDataSettings$outcomeIds <- outcomeIds 
       plpDataSettings$covariateSettings <- modelAnalysisList$covariateSettings[[referenceTable$covariateSettingId[i]]]
 
-      #defaultTopicModel <- noteCovariateExtraction::loadDefaultTopicModel(noteConceptId = 44814637)
+      defaultTopicModel <- noteCovariateExtraction::loadDefaultTopicModel(noteConceptId = 44814637,targetLanguage = c('KOR','ENG'),'base')
       noteCovSet<-noteCovariateExtraction::createTopicFromNoteSettings(useTopicFromNote = TRUE,
                                                                         noteConceptId = c(44814637),
                                                                         useDictionary= FALSE,
@@ -144,8 +144,7 @@ runPlpAnalysesWithNote <- function(connectionDetails,
                                                                         nGram = 1L,
                                                                         buildTopicModeling= FALSE,
                                                                         buildTopidModelMinFrac = 0.01,
-                                                                        existingTopicModel = list(c(44814637),c('KOR','ENG')),
-                                                                        useCustomTopicModel = FALSE,
+                                                                        existingTopicModel = defaultTopicModel,
                                                                         useTextToVec = FALSE,
                                                                         useTopicModeling=TRUE,
                                                                         numberOfTopics=4000L,

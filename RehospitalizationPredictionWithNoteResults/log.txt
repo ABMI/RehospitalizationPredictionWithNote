@@ -1,0 +1,23 @@
+2018-12-17 17:09:55	[Main thread]	INFO	RehospitalizationPredictionWithNote	execute	Creating cohorts
+2018-12-17 17:09:58	[Main thread]	WARN	SqlRender	loadRenderTranslateSql	can only read in bytes in a non-UTF-8 MBCS locale
+2018-12-17 17:09:58	[Main thread]	WARN	SqlRender	loadRenderTranslateSql	can only read in bytes in a non-UTF-8 MBCS locale
+2018-12-17 17:10:12	[Main thread]	WARN	SqlRender	loadRenderTranslateSql	can only read in bytes in a non-UTF-8 MBCS locale
+2018-12-17 17:10:12	[Main thread]	WARN	SqlRender	renderSql	Parameter 'vocabulary_database_schema' not found in SQL
+2018-12-17 17:10:15	[Main thread]	INFO	RehospitalizationPredictionWithNote	createCohorts	Counting cohorts
+2018-12-17 17:10:15	[Main thread]	WARN	SqlRender	loadRenderTranslateSql	can only read in bytes in a non-UTF-8 MBCS locale
+2018-12-17 17:10:16	[Main thread]	INFO	RehospitalizationPredictionWithNote	execute	Running predictions
+2018-12-17 17:10:21	[Main thread]	FATAL	PatientLevelPrediction	loadPredictionAnalysisList	Error in get(paste0("set", gsub("Settings", "", name)), envir = environment(PatientLevelPrediction::accuracy)) :    object 'set' not found 
+2018-12-17 17:11:36	[Main thread]	INFO	RehospitalizationPredictionWithNote	execute	Running predictions
+2018-12-17 17:11:36	[Main thread]	INFO	RehospitalizationPredictionWithNote	execute	Running predictions
+2018-12-17 17:11:48	[Main thread]	FATAL	PatientLevelPrediction	loadPredictionAnalysisList	Error in get(paste0("set", gsub("Settings", "", name)), envir = environment(PatientLevelPrediction::accuracy)) :    object 'set' not found 
+2018-12-17 17:11:48	[Main thread]	FATAL	PatientLevelPrediction	loadPredictionAnalysisList	Error in get(paste0("set", gsub("Settings", "", name)), envir = environment(PatientLevelPrediction::accuracy)) :    object 'set' not found 
+2018-12-17 17:13:29	[Main thread]	FATAL			Error: unexpected string constant in: "# Specify where the temporary files (used by the ff package) will be created: options(fftempdir = "" 
+2018-12-17 17:13:29	[Main thread]	FATAL			Error: unexpected string constant in: "# Specify where the temporary files (used by the ff package) will be created: options(fftempdir = "" 
+2018-12-17 17:13:30	[Main thread]	INFO	RehospitalizationPredictionWithNote	execute	Running predictions
+2018-12-17 17:13:30	[Main thread]	INFO	RehospitalizationPredictionWithNote	execute	Running predictions
+2018-12-17 17:13:32	[Main thread]	FATAL	PatientLevelPrediction	loadPredictionAnalysisList	Error in get(paste0("set", gsub("Settings", "", name)), envir = environment(PatientLevelPrediction::accuracy)) :    object 'set' not found 
+2018-12-17 17:13:32	[Main thread]	FATAL	PatientLevelPrediction	loadPredictionAnalysisList	Error in get(paste0("set", gsub("Settings", "", name)), envir = environment(PatientLevelPrediction::accuracy)) :    object 'set' not found 
+2018-12-17 17:13:40	[Main thread]	INFO	RehospitalizationPredictionWithNote	execute	Running predictions
+2018-12-17 17:13:40	[Main thread]	INFO	RehospitalizationPredictionWithNote	execute	Running predictions
+2018-12-17 17:14:00	[Main thread]	FATAL	PatientLevelPrediction	loadPredictionAnalysisList	Error in get(paste0("set", gsub("Settings", "", name)), envir = environment(PatientLevelPrediction::accuracy)) :    object 'set' not found 
+2018-12-17 17:14:00	[Main thread]	FATAL	PatientLevelPrediction	loadPredictionAnalysisList	Error in get(paste0("set", gsub("Settings", "", name)), envir = environment(PatientLevelPrediction::accuracy)) :    object 'set' not found 
