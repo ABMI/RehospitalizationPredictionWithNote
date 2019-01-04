@@ -118,25 +118,140 @@ execute <- function(connectionDetails,
   }
   
   if(runAnalyses){
-    OhdsiRTools::logInfo("Running predictions")
-    predictionAnalysisListFile <- system.file("settings",
-                                              "predictionAnalysisList.json",
-                                              package = "RehospitalizationPredictionWithNote")
-    predictionAnalysisList <- PatientLevelPrediction::loadPredictionAnalysisList(predictionAnalysisListFile)
-    predictionAnalysisList$connectionDetails = connectionDetails
-    predictionAnalysisList$cdmDatabaseSchema = cdmDatabaseSchema
-    predictionAnalysisList$cdmDatabaseName = cdmDatabaseName
-    predictionAnalysisList$oracleTempSchema = oracleTempSchema
-    predictionAnalysisList$cohortDatabaseSchema = cohortDatabaseSchema
-    predictionAnalysisList$cohortTable = cohortTable
-    predictionAnalysisList$outcomeDatabaseSchema = cohortDatabaseSchema
-    predictionAnalysisList$outcomeTable = cohortTable
-    predictionAnalysisList$cdmVersion = cdmVersion
-    predictionAnalysisList$outputFolder = outputFolder
-    predictionAnalysisList$verbosity = verbosity
     
-    result <- do.call(runPlpAnalysesWithNote, predictionAnalysisList)
+    defaultCovariateSettings <- FeatureExtraction::createCovariateSettings(useDemographicsGender = TRUE,
+                                                                           useDemographicsAgeGroup = TRUE,
+                                                                           useDemographicsRace = TRUE,
+                                                                           useConditionOccurrenceAnyTimePrior = T,
+                                                                           useConditionEraAnyTimePrior = FALSE,
+                                                                           useConditionGroupEraAnyTimePrior = FALSE, #FALSE,
+                                                                           useDrugExposureAnyTimePrior = FALSE,
+                                                                           useDrugEraAnyTimePrior = FALSE,
+                                                                           useDrugGroupEraAnyTimePrior = FALSE, #FALSE,
+                                                                           useProcedureOccurrenceAnyTimePrior = FALSE,
+                                                                           useDeviceExposureAnyTimePrior = FALSE,
+                                                                           useMeasurementAnyTimePrior =FALSE,
+                                                                           useObservationAnyTimePrior = FALSE,
+                                                                           useCharlsonIndex = FALSE,
+                                                                           useDcsi = FALSE,
+                                                                           useChads2 = FALSE,
+                                                                           longTermStartDays = -365,
+                                                                           mediumTermStartDays = -180, 
+                                                                           shortTermStartDays = -30, 
+                                                                           endDays = 0)
+    
+    defaultTopicModel <- noteCovariateExtraction::loadDefaultTopicModel(c(44814637),c('KOR','ENG'),'base')
+    noteCovSet<-noteCovariateExtraction::createTopicFromNoteSettings(useTopicFromNote = TRUE,
+                                                                     noteConceptId = c(44814637),
+                                                                     useDictionary= FALSE,
+                                                                     targetLanguage = c('KOR','ENG'),
+                                                                     nGram = 1L,
+                                                                     buildTopicModeling= FALSE,
+                                                                     buildTopidModelMinFrac = 0.01,
+                                                                     existingTopicModel = defaultTopicModel,
+                                                                     useTextToVec = FALSE,
+                                                                     useTopicModeling=TRUE,
+                                                                     numberOfTopics=100L,
+                                                                     optimalTopicValue =FALSE,
+                                                                     useGloVe = FALSE,
+                                                                     latentDimensionForGlove = 100L,
+                                                                     useAutoencoder=FALSE,
+                                                                     latentDimensionForAutoEncoder = 100L,
+                                                                     sampleSize=-1)
+    
+    covariateSettingList <- list(#defaultCovariateSettings,
+      noteCovSet
+    ) 
+    
+    plpData<-PatientLevelPrediction::getPlpData(connectionDetails, 
+                                                cdmDatabaseSchema,
+                                                oracleTempSchema = oracleTempSchema, 
+                                                cohortId = c(747), 
+                                                outcomeIds = c(748),
+                                                studyStartDate = "20050101", 
+                                                studyEndDate = "",
+                                                cohortDatabaseSchema = cohortDatabaseSchema, 
+                                                cohortTable = cohortTable,
+                                                outcomeDatabaseSchema = cohortDatabaseSchema, 
+                                                outcomeTable = cohortTable,
+                                                cdmVersion = "5", 
+                                                firstExposureOnly = FALSE, 
+                                                washoutPeriod = 0,
+                                                sampleSize = NULL, 
+                                                covariateSettings=covariateSettingList, 
+                                                excludeDrugsFromCovariates = FALSE,
+                                                baseUrl = NULL)
+    
+    studyPopulation<-PatientLevelPrediction::createStudyPopulation(plpData, 
+                                                                   population = NULL, 
+                                                                   outcomeId = c(748), 
+                                                                   binary = T,
+                                                                   includeAllOutcomes = T, 
+                                                                   firstExposureOnly = FALSE, 
+                                                                   washoutPeriod = 0,
+                                                                   removeSubjectsWithPriorOutcome = FALSE, 
+                                                                   priorOutcomeLookback = 99999,
+                                                                   requireTimeAtRisk = T, 
+                                                                   minTimeAtRisk = 29, riskWindowStart = 1,
+                                                                   addExposureDaysToStart = FALSE, 
+                                                                   riskWindowEnd = 30,
+                                                                   addExposureDaysToEnd = F)
+    
+    
+    lassoLogisticSetting<-PatientLevelPrediction::setLassoLogisticRegression()
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    result<-      PatientLevelPrediction::runPlp(population=studyPopulation,
+                                                 plpData=plpData,
+                                                 minCovariateFraction = 0.0001, 
+                                                 normalizeData = T,
+                                                 modelSettings =lassoLogisticSetting, 
+                                                 testSplit = "person", 
+                                                 testFraction = 0.25,
+                                                 trainFraction = NULL, 
+                                                 splitSeed = NULL, 
+                                                 nfold = 3, indexes = NULL,
+                                                 saveDirectory = outputFolder, 
+                                                 savePlpData = T, 
+                                                 savePlpResult = T,
+                                                 savePlpPlots = T, 
+                                                 saveEvaluation = F, verbosity = "INFO",
+                                                 timeStamp = FALSE, 
+                                                 analysisId = NULL, 
+                                                 save = NULL
+    )
+    
+    # OhdsiRTools::logInfo("Running predictions")
+    # 
+    # predictionAnalysisListFile <- system.file("settings",
+    #                                           "predictionAnalysisList.json",
+    #                                           package = "RehospitalizationPredictionWithNote")
+    # predictionAnalysisList <- PatientLevelPrediction::loadPredictionAnalysisList(predictionAnalysisListFile)
+    # predictionAnalysisList$connectionDetails = connectionDetails
+    # predictionAnalysisList$cdmDatabaseSchema = cdmDatabaseSchema
+    # predictionAnalysisList$cdmDatabaseName = cdmDatabaseName
+    # predictionAnalysisList$oracleTempSchema = oracleTempSchema
+    # predictionAnalysisList$cohortDatabaseSchema = cohortDatabaseSchema
+    # predictionAnalysisList$cohortTable = cohortTable
+    # predictionAnalysisList$outcomeDatabaseSchema = cohortDatabaseSchema
+    # predictionAnalysisList$outcomeTable = cohortTable
+    # predictionAnalysisList$cdmVersion = cdmVersion
+    # predictionAnalysisList$outputFolder = outputFolder
+    # predictionAnalysisList$verbosity = verbosity
+    # 
     #result <- do.call(PatientLevelPrediction::runPlpAnalyses, predictionAnalysisList)
+    
+    
   }
   
   if (packageResults) {
@@ -173,8 +288,7 @@ execute <- function(connectionDetails,
   
   
   invisible(NULL)
+  
+  
+  
 }
-
-
-
-
