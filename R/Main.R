@@ -97,7 +97,8 @@ execute <- function(connectionDetails,
                     packageResults = F,
                     minCellCount= 5,
                     verbosity = "INFO",
-                    cdmVersion = 5) {
+                    cdmVersion = 5,
+                    sampleSize = NULL) {
   if (!file.exists(outputFolder))
     dir.create(outputFolder, recursive = TRUE)
   
@@ -139,27 +140,106 @@ execute <- function(connectionDetails,
                                                                            mediumTermStartDays = -180, 
                                                                            shortTermStartDays = -30, 
                                                                            endDays = 0)
+    ###without note
+    plpData<-PatientLevelPrediction::getPlpData(connectionDetails, 
+                                                cdmDatabaseSchema,
+                                                oracleTempSchema = oracleTempSchema, 
+                                                cohortId = c(747), 
+                                                outcomeIds = c(748),
+                                                studyStartDate = "20050101", 
+                                                studyEndDate = "",
+                                                cohortDatabaseSchema = cohortDatabaseSchema, 
+                                                cohortTable = cohortTable,
+                                                outcomeDatabaseSchema = cohortDatabaseSchema, 
+                                                outcomeTable = cohortTable,
+                                                cdmVersion = "5", 
+                                                firstExposureOnly = FALSE, 
+                                                washoutPeriod = 0,
+                                                sampleSize = sampleSize, 
+                                                covariateSettings=defaultCovariateSettings, 
+                                                excludeDrugsFromCovariates = FALSE,
+                                                baseUrl = NULL)
     
-    defaultTopicModel <- noteCovariateExtraction::loadDefaultTopicModel(c(44814637),c('KOR','ENG'),'base')
-    noteCovSet<-noteCovariateExtraction::createTopicFromNoteSettings(useTopicFromNote = TRUE,
-                                                                     noteConceptId = c(44814637),
-                                                                     useDictionary= FALSE,
-                                                                     targetLanguage = c('KOR','ENG'),
-                                                                     nGram = 1L,
-                                                                     buildTopicModeling= FALSE,
-                                                                     buildTopidModelMinFrac = 0.01,
+    studyPopulation<-PatientLevelPrediction::createStudyPopulation(plpData, 
+                                                                   population = NULL, 
+                                                                   outcomeId = c(748), 
+                                                                   binary = T,
+                                                                   includeAllOutcomes = T, 
+                                                                   firstExposureOnly = FALSE, 
+                                                                   washoutPeriod = 0,
+                                                                   removeSubjectsWithPriorOutcome = FALSE, 
+                                                                   priorOutcomeLookback = 99999,
+                                                                   requireTimeAtRisk = T, 
+                                                                   minTimeAtRisk = 29, riskWindowStart = 1,
+                                                                   addExposureDaysToStart = FALSE, 
+                                                                   riskWindowEnd = 30,
+                                                                   addExposureDaysToEnd = F)
+    
+    lassoLogisticSetting<-PatientLevelPrediction::setLassoLogisticRegression()
+    
+    result<-      PatientLevelPrediction::runPlp(population=studyPopulation,
+                                                 plpData=plpData,
+                                                 minCovariateFraction = 0.0001, 
+                                                 normalizeData = T,
+                                                 modelSettings =lassoLogisticSetting, 
+                                                 testSplit = "person", 
+                                                 testFraction = 0.25,
+                                                 trainFraction = NULL, 
+                                                 splitSeed = NULL, 
+                                                 nfold = 3, 
+                                                 indexes = NULL,
+                                                 saveDirectory = file.path(outputFolder,"Analysis_lasso") ,
+                                                 savePlpData = T, 
+                                                 savePlpResult = T,
+                                                 savePlpPlots = T, 
+                                                 saveEvaluation = F, verbosity = "INFO",
+                                                 timeStamp = FALSE, 
+                                                 analysisId = NULL
+    )
+    PatientLevelPrediction::savePlpModel(result$model,dirPath = file.path(outputFolder,"Analysis_lasso"))
+    PatientLevelPrediction::savePlpResult(result,file.path(outputFolder,"Analysis_lasso"))
+    
+    gbmSetting<-PatientLevelPrediction::setGradientBoostingMachine()
+    result<-      PatientLevelPrediction::runPlp(population=studyPopulation,
+                                                 plpData=plpData,
+                                                 minCovariateFraction = 0.0001, 
+                                                 normalizeData = T,
+                                                 modelSettings =gbmSetting, 
+                                                 testSplit = "person", 
+                                                 testFraction = 0.25,
+                                                 trainFraction = NULL, 
+                                                 splitSeed = NULL, 
+                                                 nfold = 3, 
+                                                 indexes = NULL,
+                                                 saveDirectory = file.path(outputFolder,"Analysis_gbm") ,
+                                                 savePlpData = T, 
+                                                 savePlpResult = T,
+                                                 savePlpPlots = T, 
+                                                 saveEvaluation = F, verbosity = "INFO",
+                                                 timeStamp = FALSE, 
+                                                 analysisId = NULL
+    )
+    PatientLevelPrediction::savePlpModel(result$model,dirPath = file.path(outputFolder,"Analysis_gbm"))
+    PatientLevelPrediction::savePlpResult(result,file.path(outputFolder,"Analysis_gbm"))
+    
+    ###with note
+    defaultTopicModel <- noteCovariateExtraction::loadDefaultTopicModel(c(44814637),c('KOR'),'base')
+    
+    noteCovSet<-noteCovariateExtraction::createTopicFromNoteSettings(noteConceptId = c(44814637),
                                                                      existingTopicModel = defaultTopicModel,
+                                                                     buildTopicModeling= FALSE,
+                                                                     useDictionary=FALSE,
+                                                                     limitedMedicalTermOnlyLanguage = c('KOR','ENG'),
+                                                                     nGram = defaultTopicModel$nGramSetting,
+                                                                     buildTopidModelMinFrac = 0.001,
+                                                                     buildTopidModelMaxFrac = 0.5,
                                                                      useTextToVec = FALSE,
-                                                                     useTopicModeling=TRUE,
-                                                                     numberOfTopics=100L,
+                                                                     useTopicModeling=FALSE,
                                                                      optimalTopicValue =FALSE,
-                                                                     useGloVe = FALSE,
-                                                                     latentDimensionForGlove = 100L,
-                                                                     useAutoencoder=FALSE,
-                                                                     latentDimensionForAutoEncoder = 100L,
+                                                                     numberOfTopics=defaultTopicModel$numberOfTopics,
                                                                      sampleSize=-1)
     
-    covariateSettingList <- list(#defaultCovariateSettings,
+    covariateSettingList <- list(defaultCovariateSettings,
       noteCovSet
     ) 
     
@@ -177,7 +257,7 @@ execute <- function(connectionDetails,
                                                 cdmVersion = "5", 
                                                 firstExposureOnly = FALSE, 
                                                 washoutPeriod = 0,
-                                                sampleSize = NULL, 
+                                                sampleSize = sampleSize, 
                                                 covariateSettings=covariateSettingList, 
                                                 excludeDrugsFromCovariates = FALSE,
                                                 baseUrl = NULL)
@@ -197,19 +277,7 @@ execute <- function(connectionDetails,
                                                                    riskWindowEnd = 30,
                                                                    addExposureDaysToEnd = F)
     
-    
     lassoLogisticSetting<-PatientLevelPrediction::setLassoLogisticRegression()
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
     
     result<-      PatientLevelPrediction::runPlp(population=studyPopulation,
                                                  plpData=plpData,
@@ -220,16 +288,41 @@ execute <- function(connectionDetails,
                                                  testFraction = 0.25,
                                                  trainFraction = NULL, 
                                                  splitSeed = NULL, 
-                                                 nfold = 3, indexes = NULL,
-                                                 saveDirectory = outputFolder, 
+                                                 nfold = 3, 
+                                                 indexes = NULL,
+                                                 saveDirectory = file.path(outputFolder,"Analysis_lasso_note") ,
                                                  savePlpData = T, 
                                                  savePlpResult = T,
                                                  savePlpPlots = T, 
                                                  saveEvaluation = F, verbosity = "INFO",
                                                  timeStamp = FALSE, 
-                                                 analysisId = NULL, 
-                                                 save = NULL
+                                                 analysisId = NULL
     )
+    PatientLevelPrediction::savePlpModel(result$model,dirPath = file.path(outputFolder,"Analysis_lasso_note"))
+    PatientLevelPrediction::savePlpResult(result,file.path(outputFolder,"Analysis_lasso_note"))
+    
+    gbmSetting<-PatientLevelPrediction::setGradientBoostingMachine()
+    result<-      PatientLevelPrediction::runPlp(population=studyPopulation,
+                                                 plpData=plpData,
+                                                 minCovariateFraction = 0.0001, 
+                                                 normalizeData = T,
+                                                 modelSettings =gbmSetting, 
+                                                 testSplit = "person", 
+                                                 testFraction = 0.25,
+                                                 trainFraction = NULL, 
+                                                 splitSeed = NULL, 
+                                                 nfold = 3, 
+                                                 indexes = NULL,
+                                                 saveDirectory = file.path(outputFolder,"Analysis_gbm_note") ,
+                                                 savePlpData = T, 
+                                                 savePlpResult = T,
+                                                 savePlpPlots = T, 
+                                                 saveEvaluation = F, verbosity = "INFO",
+                                                 timeStamp = FALSE, 
+                                                 analysisId = NULL
+    )
+    PatientLevelPrediction::savePlpModel(result$model,dirPath = file.path(outputFolder,"Analysis_gbm_note"))
+    PatientLevelPrediction::savePlpResult(result,file.path(outputFolder,"Analysis_gbm_note"))
     
     # OhdsiRTools::logInfo("Running predictions")
     # 
